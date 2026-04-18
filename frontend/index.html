@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroSync - Airline Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Setup Import Map for Three.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i data-lucide="plane"></i>
+                <h2>AeroSync</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><i data-lucide="layout-dashboard"></i> Dashboard</li>
+                <li><i data-lucide="globe"></i> Routes (3D)</li>
+                <li><i data-lucide="users"></i> Customers (Q1, Q2)</li>
+                <li><i data-lucide="banknote"></i> Financials (Q3, Q8)</li>
+                <li><i data-lucide="ticket"></i> Bookings (Q7)</li>
+                <li><i data-lucide="calendar"></i> Availability (Q4)</li>
+            </ul>
+            <div class="user-profile">
+                <img src="https://i.pravatar.cc/150?img=11" alt="Admin">
+                <div class="user-info">
+                    <strong>Admin User</strong>
+                    <span>System Manager</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-nav">
+                <div class="search-bar">
+                    <i data-lucide="search"></i>
+                    <input type="text" placeholder="Search flights, bookings, or customers...">
+                </div>
+                <div class="quick-actions">
+                    <button class="icon-btn"><i data-lucide="bell"></i></button>
+                    <button class="icon-btn"><i data-lucide="settings"></i></button>
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <!-- 3D Visualization Area -->
+                <div class="panel map-panel">
+                    <div class="panel-header">
+                        <h3>Global Flight Network</h3>
+                        <span class="badge">Live 3D View</span>
+                    </div>
+                    <div class="scene-container" id="canvas-container">
+                        <!-- Three.js Canvas injected here -->
+                    </div>
+                </div>
+
+                <!-- Financial Stats -->
+                <div class="panel stats-panel">
+                    <div class="panel-header">
+                        <h3>System Overview</h3>
+                    </div>
+                    <div class="stat-cards">
+                        <div class="card">
+                            <div class="card-icon blue"><i data-lucide="plane-takeoff"></i></div>
+                            <div class="card-info">
+                                <span>Active Flights</span>
+                                <h4>1,284</h4>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon green"><i data-lucide="credit-card"></i></div>
+                            <div class="card-info">
+                                <span>Total Revenue</span>
+                                <h4>$3.4M</h4>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon red"><i data-lucide="x-circle"></i></div>
+                            <div class="card-info">
+                                <span>Cancellations (Q7)</span>
+                                <h4>42</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Query Results Data Table -->
+                <div class="panel table-panel">
+                    <div class="panel-header">
+                        <h3>Flight Availability: YYZ ➔ JFK (Q4)</h3>
+                        <button class="btn-primary">View All Queries</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Flight No.</th>
+                                <th>Origin</th>
+                                <th>Destination</th>
+                                <th>Departure</th>
+                                <th>Arrival</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>FL-1042</strong></td>
+                                <td>Toronto (YYZ)</td>
+                                <td>New York (JFK)</td>
+                                <td>Oct 12, 08:30</td>
+                                <td>Oct 12, 09:45</td>
+                                <td><span class="status-badge on-time">On Time</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>FL-1088</strong></td>
+                                <td>Toronto (YYZ)</td>
+                                <td>New York (JFK)</td>
+                                <td>Oct 12, 14:00</td>
+                                <td>Oct 12, 15:15</td>
+                                <td><span class="status-badge delayed">Delayed</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>FL-1102</strong></td>
+                                <td>Toronto (YYZ)</td>
+                                <td>New York (JFK)</td>
+                                <td>Oct 12, 18:45</td>
+                                <td>Oct 12, 20:00</td>
+                                <td><span class="status-badge on-time">On Time</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Exchange Rates Widget -->
+                <div class="panel list-panel">
+                    <div class="panel-header">
+                        <h3>Exchange Rates > 1 (Q3)</h3>
+                    </div>
+                    <ul class="currency-list">
+                        <li>
+                            <div class="currency-pair">
+                                <span class="flag">🇬🇧</span> GBP ➔ <span class="flag">🇺🇸</span> USD
+                            </div>
+                            <div class="rate">1.2205 <i data-lucide="trending-up" class="up"></i></div>
+                        </li>
+                        <li>
+                            <div class="currency-pair">
+                                <span class="flag">🇪🇺</span> EUR ➔ <span class="flag">🇺🇸</span> USD
+                            </div>
+                            <div class="rate">1.0540 <i data-lucide="trending-down" class="down"></i></div>
+                        </li>
+                        <li>
+                            <div class="currency-pair">
+                                <span class="flag">🇺🇸</span> USD ➔ <span class="flag">🇨🇦</span> CAD
+                            </div>
+                            <div class="rate">1.3650 <i data-lucide="trending-up" class="up"></i></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

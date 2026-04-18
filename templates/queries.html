@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}Query Playground{% endblock %}
+{% block page_title %}Query Playground{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">SQL Query Playground</h1>
+    <p class="page-subtitle">10 required DBMS case study queries — live results from MySQL</p>
+  </div>
+</div>
+
+<div class="query-layout">
+  <!-- Query Sidebar -->
+  <div class="query-sidebar">
+    <h3>Case Study Queries</h3>
+    {% set query_list = [
+      (1,  'Customers in Canada', 'Sorted by customer_id'),
+      (2,  'Booking Customers', 'Distinct customers who booked'),
+      (3,  'Exchange Rate > 1', 'Sorted by currency pair'),
+      (4,  'YYZ → JFK Flights', 'Toronto to New York availability'),
+      (5,  'No Bookings', 'Customers with zero bookings'),
+      (6,  'Contact Info', 'Name, phone (formatted), email'),
+      (7,  'Canceled Bookings', 'All canceled records with detail'),
+      (8,  'City Financials', 'Price, payment, balance per city'),
+      (9,  'Tax Price Update', 'Recalculate with updated taxes'),
+      (10, 'Customer Aggregates', 'Bookings, emails, phones, faxes count'),
+    ] %}
+    {% for num, title, desc in query_list %}
+    <button class="query-btn" id="qbtn-{{ num }}" onclick="loadQuery({{ num }})">
+      <div class="query-btn-num">{{ num }}</div>
+      <div>
+        <div class="query-btn-text font-semibold">{{ title }}</div>
+        <div class="query-btn-text" style="font-size:11px;color:var(--text-muted);">{{ desc }}</div>
+      </div>
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- Result Area -->
+  <div class="query-result-area">
+    <div class="query-result-header">
+      <div>
+        <div class="query-result-title" id="resultTitle">Select a query from the left panel</div>
+        <div class="query-result-sql" id="resultSQL">Click any query button to load results</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div class="table-search" style="width:200px;" id="resultSearchBox" style="display:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+          <input type="text" id="resultSearch" placeholder="Filter results..." oninput="filterResults(this.value)">
+        </div>
+        <span class="badge badge-neutral" id="resultCount"></span>
+      </div>
+    </div>
+    
+    <div id="queryResultBody">
+      <div class="query-loading">
+        <div style="font-size:40px;">📊</div>
+        <p style="font-weight:500;color:var(--text-secondary);">Choose a query to see results</p>
+        <p style="font-size:12px;">All queries run directly against your MySQL database</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const QUERY_META = {
+  1:  { title: 'Q1: Customers in Canada', sql: 'SELECT * FROM Customers WHERE country = \'Canada\' ORDER BY customer_id' },
+  2:  { title: 'Q2: Distinct Customers with Bookings', sql: 'SELECT DISTINCT c.* FROM Customers c JOIN Bookings b ON c.customer_id = b.payer_customer_id' },
+  3:  { title: 'Q3: Exchange Rates > 1', sql: 'SELECT * FROM Exchange_Rates WHERE rate > 1 ORDER BY from_currency, to_currency' },
+  4:  { title: 'Q4: Flights YYZ → JFK (Toronto → New York)', sql: 'SELECT fa.flight_no, c1.city_name AS origin, c2.city_name AS dest, fa.dep_time, fa.arr_time FROM Flight_Availabilities fa JOIN Cities c1 ON fa.origin_city_id=c1.city_id JOIN Cities c2 ON fa.dest_city_id=c2.city_id WHERE c1.airport_code=\'YYZ\' AND c2.airport_code=\'JFK\' ORDER BY fa.flight_no' },
+  5:  { title: 'Q5: Customers with No Bookings', sql: 'SELECT c.customer_id FROM Customers c LEFT JOIN Bookings b ON c.customer_id = b.payer_customer_id WHERE b.booking_no IS NULL ORDER BY c.customer_id' },
+  6:  { title: 'Q6: Customer Contact Info (Formatted Phone)', sql: 'SELECT c.customer_id, c.first_name, c.last_name, CONCAT(cp.area_code,\'-\',SUBSTRING(cp.local_number,1,3),\'-\',SUBSTRING(cp.local_number,4)) AS phone_no, ce.email FROM Customers c LEFT JOIN Customer_Phones cp ON c.customer_id=cp.customer_id LEFT JOIN Customer_Emails ce ON c.customer_id=ce.customer_id ORDER BY c.customer_id' },
+  7:  { title: 'Q7: All Canceled Bookings', sql: 'SELECT b.booking_no, b.payer_customer_id, b.flight_no, orig.city_name AS origin, dest.city_name AS destination, b.class, b.status FROM Bookings b JOIN Flight_Availabilities fa ON b.flight_no=fa.flight_no AND b.dep_time=fa.dep_time JOIN Cities orig ON fa.origin_city_id=orig.city_id JOIN Cities dest ON fa.dest_city_id=dest.city_id WHERE b.status=\'Canceled\' ORDER BY b.booking_no' },
+  8:  { title: 'Q8: City-wise Financials (Excl. Canceled)', sql: 'SELECT c.city_name, SUM(b.total_price) AS total_price, SUM(b.amount_paid) AS total_payment, SUM(b.outstanding_balance) AS total_balance FROM Bookings b JOIN Cities c ON b.booking_city_id=c.city_id WHERE b.status!=\'Canceled\' GROUP BY c.city_name ORDER BY c.city_name' },
+  9:  { title: 'Q9: Recalculated Prices (Tax Change +0.01/-0.005)', sql: 'SELECT b.booking_no, orig.city_name AS origin, dest.city_name AS destination, b.flight_price, b.total_price AS previous_total_price, (b.flight_price+(orig.airport_tax+0.01)+(dest.airport_tax-0.005)) AS new_total_price FROM Bookings b JOIN Flight_Availabilities fa ON b.flight_no=fa.flight_no AND b.dep_time=fa.dep_time JOIN Cities orig ON fa.origin_city_id=orig.city_id JOIN Cities dest ON fa.dest_city_id=dest.city_id' },
+  10: { title: 'Q10: Customer Aggregates (Bookings, Emails, Phones, Faxes)', sql: 'SELECT c.customer_id, c.first_name, c.last_name, COUNT(DISTINCT b.booking_no) AS bookings, COUNT(DISTINCT ce.email) AS emails, COUNT(DISTINCT cp.local_number) AS phones, COUNT(DISTINCT cf.local_number) AS faxes FROM Customers c LEFT JOIN Bookings b ON c.customer_id=b.payer_customer_id LEFT JOIN Customer_Emails ce ON c.customer_id=ce.customer_id LEFT JOIN Customer_Phones cp ON c.customer_id=cp.customer_id LEFT JOIN Customer_Faxes cf ON c.customer_id=cf.customer_id GROUP BY c.customer_id, c.first_name, c.last_name' }
+};
+
+let currentRows = [];
+
+function loadQuery(n) {
+  // Update active button
+  document.querySelectorAll('.query-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('qbtn-'+n).classList.add('active');
+
+  const meta = QUERY_META[n];
+  document.getElementById('resultTitle').textContent = meta.title;
+  document.getElementById('resultSQL').textContent = meta.sql.length > 100 ? meta.sql.substring(0,100)+'...' : meta.sql;
+  document.getElementById('resultCount').textContent = '';
+
+  document.getElementById('queryResultBody').innerHTML = `
+    <div class="query-loading">
+      <div class="spinner"></div>
+      <p style="font-weight:500;">Running query against MySQL...</p>
+    </div>`;
+
+  fetch('/api/query/'+n)
+    .then(r => r.json())
+    .then(data => {
+      currentRows = data.rows;
+      renderTable(data);
+    })
+    .catch(e => {
+      document.getElementById('queryResultBody').innerHTML = `
+        <div class="query-loading">
+          <div style="font-size:36px;">⚠️</div>
+          <p style="color:var(--danger);font-weight:600;">Query failed</p>
+          <p style="font-size:12px;">${e.message}</p>
+        </div>`;
+    });
+}
+
+function renderTable(data) {
+  if (!data.rows || data.rows.length === 0) {
+    document.getElementById('queryResultBody').innerHTML = `
+      <div class="query-loading">
+        <div style="font-size:36px;">📭</div>
+        <p style="font-weight:500;">No results found for this query</p>
+      </div>`;
+    document.getElementById('resultCount').textContent = '0 rows';
+    return;
+  }
+
+  document.getElementById('resultCount').textContent = `${data.rows.length} rows`;
+
+  const cols = data.columns;
+  let html = `<div style="overflow-x:auto;"><table><thead><tr>`;
+  cols.forEach(c => { html += `<th>${c}</th>`; });
+  html += `</tr></thead><tbody id="queryRows">`;
+
+  data.rows.forEach(row => {
+    html += `<tr>`;
+    cols.forEach(c => {
+      let val = row[c];
+      if (val === null || val === undefined) val = '—';
+      // Status coloring
+      if (c === 'status') {
+        const cls = val === 'Booked' ? 'badge-success' : val === 'Canceled' ? 'badge-danger' : 'badge-warning';
+        val = `<span class="badge ${cls}">${val}</span>`;
+      }
+      // Rate coloring
+      if (c === 'rate' || c === 'exchange_rate') {
+        val = `<span style="font-weight:600;color:var(--primary);">${parseFloat(val).toFixed(4)}</span>`;
+      }
+      html += `<td>${val}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  html += `<div style="padding:12px 20px;border-top:1px solid var(--border);font-size:12.5px;color:var(--text-muted);">
+    ${data.rows.length} row${data.rows.length !== 1 ? 's' : ''} returned from MySQL
+  </div>`;
+
+  document.getElementById('queryResultBody').innerHTML = html;
+}
+
+function filterResults(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#queryRows tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// Auto-load Q1 on page load
+window.addEventListener('DOMContentLoaded', () => loadQuery(1));
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block auth_content %}
+<div class="login-page">
+  <!-- Visual Panel -->
+  <div class="login-visual">
+    <div class="login-visual-text">
+      <div class="login-visual-logo">✈ AeroSync</div>
+      <h2 style="font-size: 26px; font-weight: 700; margin-bottom: 12px;">Your Airline, Controlled.</h2>
+      <p class="login-visual-quote">A unified reservation management system for modern airline operations — manage flights, bookings, and customers with precision.</p>
+      <div style="display:flex; gap: 20px; justify-content: center; margin-top: 40px;">
+        <div style="text-align:center;">
+          <div style="font-size:28px;font-weight:700;">100+</div>
+          <div style="font-size:12px;opacity:0.7;margin-top:2px;">Customers</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:28px;font-weight:700;">6</div>
+          <div style="font-size:12px;opacity:0.7;margin-top:2px;">Airlines</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:28px;font-weight:700;">12</div>
+          <div style="font-size:12px;opacity:0.7;margin-top:2px;">Cities</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Panel -->
+  <div class="login-form-area">
+    <div class="login-form-card">
+      <h1 class="login-form-title">Welcome back</h1>
+      <p class="login-form-sub">Sign in to your AeroSync admin account</p>
+
+      <form action="{{ url_for('do_login') }}" method="POST">
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input type="email" class="form-input" placeholder="admin@aerosync.com" value="admin@aerosync.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" placeholder="••••••••" value="password123" required>
+        </div>
+        <div class="flex-between mt-2 mb-4" style="font-size:13px;">
+          <label style="display:flex;align-items:center;gap:6px;color:var(--text-secondary);cursor:pointer;">
+            <input type="checkbox" checked style="accent-color:var(--primary);"> Remember me
+          </label>
+          <a href="#" style="color:var(--primary);text-decoration:none;font-weight:500;">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary w-full btn-lg">Sign in to Dashboard</button>
+        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:20px;">B.Tech Database Technology — Case Study Implementation</p>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

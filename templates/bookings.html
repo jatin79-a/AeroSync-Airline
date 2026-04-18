@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Bookings{% endblock %}
+{% block page_title %}Bookings{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Booking Records</h1>
+    <p class="page-subtitle">Complete booking history across all flights and cities</p>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span class="badge badge-success">{{ booked_count }} Booked</span>
+    <span class="badge badge-danger">{{ canceled_count }} Canceled</span>
+    <span class="badge badge-warning">{{ scratched_count }} Scratched</span>
+  </div>
+</div>
+
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <span class="table-title">All Bookings ({{ bookings|length }})</span>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <div class="table-search">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input type="text" id="bookingSearch" placeholder="Search bookings..." oninput="filterBookings(this.value)">
+      </div>
+      <select id="statusFilter" class="form-select" style="width:140px;padding:7px 12px;" onchange="filterBookings(document.getElementById('bookingSearch').value)">
+        <option value="">All Status</option>
+        <option value="Booked">Booked</option>
+        <option value="Canceled">Canceled</option>
+        <option value="Scratched">Scratched</option>
+      </select>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table id="bookingsTable">
+      <thead>
+        <tr>
+          <th>Booking #</th>
+          <th>Customer</th>
+          <th>Flight</th>
+          <th>Route</th>
+          <th>Class</th>
+          <th>Departure</th>
+          <th>Total Price</th>
+          <th>Paid</th>
+          <th>Balance</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="bookingsTbody">
+        {% for b in bookings %}
+        <tr data-status="{{ b.status }}">
+          <td><span class="cell-mono">#{{ b.booking_no }}</span></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              {% set colors = ['avatar-blue','avatar-green','avatar-orange','avatar-red'] %}
+              <div class="avatar {{ colors[b.customer_id % 4] }}">{{ b.first_name[0] }}{{ b.last_name[0] }}</div>
+              <div>
+                <div class="cell-bold">{{ b.first_name }} {{ b.last_name }}</div>
+                <div class="cell-muted">ID #{{ b.customer_id }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-primary" style="font-family:monospace;">{{ b.flight_no }}</span></td>
+          <td>
+            <div class="cell-bold">{{ b.origin }}</div>
+            <div class="cell-muted">→ {{ b.destination }}</div>
+          </td>
+          <td><span class="badge {{ 'badge-primary' if b.class == 'Business' else 'badge-neutral' }}">{{ b.class }}</span></td>
+          <td>
+            <div class="cell-bold">{{ b.dep_time.strftime('%d %b %Y') if b.dep_time else '—' }}</div>
+            <div class="cell-muted">{{ b.dep_time.strftime('%H:%M') if b.dep_time else '' }}</div>
+          </td>
+          <td class="cell-bold">${{ "%.2f"|format(b.total_price|float) }}</td>
+          <td style="color:var(--success);font-weight:600;">${{ "%.2f"|format(b.amount_paid|float) }}</td>
+          <td style="color:{{ 'var(--danger)' if b.outstanding_balance > 0 else 'var(--text-muted)' }};font-weight:600;">
+            ${{ "%.2f"|format(b.outstanding_balance|float) }}
+          </td>
+          <td>
+            {% if b.status == 'Booked' %}<span class="badge badge-success">✓ Booked</span>
+            {% elif b.status == 'Canceled' %}<span class="badge badge-danger">✕ Canceled</span>
+            {% else %}<span class="badge badge-warning">⚠ Scratched</span>{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted);">No bookings available</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-size:12.5px;color:var(--text-muted);">Showing {{ bookings|length }} records</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterBookings(query) {
+  const status = document.getElementById('statusFilter').value;
+  const q = query.toLowerCase();
+  document.querySelectorAll('#bookingsTbody tr').forEach(row => {
+    const text = row.textContent.toLowerCase();
+    const rowStatus = row.dataset.status || '';
+    const matchQuery = !q || text.includes(q);
+    const matchStatus = !status || rowStatus === status;
+    row.style.display = matchQuery && matchStatus ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

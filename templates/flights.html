@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Flights{% endblock %}
+{% block page_title %}Flights{% endblock %}
+
+{% block content %}
+<!-- Search Hero -->
+<div class="search-hero">
+  <h2>SEARCH FLIGHTS</h2>
+  <form class="search-form" method="GET" action="{{ url_for('flights') }}">
+    <div class="search-field">
+      <div class="search-field-label">From</div>
+      <input type="text" name="origin" placeholder="e.g. Toronto, YYZ" value="{{ origin }}">
+    </div>
+    <div class="search-field">
+      <div class="search-field-label">To</div>
+      <input type="text" name="dest" placeholder="e.g. New York, JFK" value="{{ dest }}">
+    </div>
+    <div class="search-field">
+      <div class="search-field-label">Class</div>
+      <select name="class">
+        <option value="">Any Class</option>
+        <option value="Business" {{ 'selected' if class_filter=='Business' }}>Business</option>
+        <option value="Economy" {{ 'selected' if class_filter=='Economy' }}>Economy</option>
+      </select>
+    </div>
+    <button type="submit" class="btn-search">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+      Search
+    </button>
+  </form>
+</div>
+
+<!-- Results Header -->
+<div class="page-header mb-4">
+  <div>
+    <h1 class="page-title">{{ 'Search Results' if origin or dest else 'All Scheduled Flights' }}</h1>
+    <p class="page-subtitle">{{ flights|length }} flight{{ 's' if flights|length != 1 }} found</p>
+  </div>
+</div>
+
+<!-- Flight Cards Grid -->
+{% if flights %}
+<div class="grid-auto">
+  {% for f in flights %}
+  {% set economy_pct = ((f.booked_economy / f.total_economy * 100) | int) if f.total_economy > 0 else 0 %}
+  {% set business_pct = ((f.booked_business / f.total_business * 100) | int) if f.total_business and f.total_business > 0 else 0 %}
+  <div class="flight-card" style="animation-delay:{{ loop.index0 * 0.05 }}s;">
+    <div class="flex-between">
+      <span class="badge badge-primary" style="font-family:monospace;font-size:13px;padding:4px 12px;">{{ f.flight_no }}</span>
+      <span class="badge {{ 'badge-success' if f.economy_avail > 0 else 'badge-danger' }}">
+        {{ 'Available' if f.economy_avail > 0 else 'Sold Out' }}
+      </span>
+    </div>
+
+    <div class="flight-route">
+      <div class="route-airport">
+        <div class="route-code">{{ f.origin_code }}</div>
+        <div class="route-city">{{ f.origin_city }}</div>
+      </div>
+      <div class="route-line">
+        <div class="route-duration">Direct</div>
+        <div class="route-dots">
+          <div class="route-plane">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+          </div>
+        </div>
+        <div class="route-duration">{{ f.dep_time.strftime('%b %d') if f.dep_time else '—' }}</div>
+      </div>
+      <div class="route-airport">
+        <div class="route-code">{{ f.dest_code }}</div>
+        <div class="route-city">{{ f.dest_city }}</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Economy</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-top:2px;">{{ f.economy_avail }} / {{ f.total_economy }} seats</div>
+        <div class="seat-bar mt-1">
+          <div class="seat-bar-fill {{ 'warn' if economy_pct > 75 else ('full' if economy_pct >= 100 else '') }}" style="width:{{ economy_pct }}%;"></div>
+        </div>
+      </div>
+      {% if f.business_class_indicator %}
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Business</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-top:2px;">{{ f.business_avail }} / {{ f.total_business }} seats</div>
+        <div class="seat-bar mt-1">
+          <div class="seat-bar-fill {{ 'warn' if business_pct > 75 else ('full' if business_pct >= 100 else '') }}" style="width:{{ business_pct }}%;"></div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="divider" style="margin: 14px 0;"></div>
+    <div class="flex-between">
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);">Base Price</div>
+        <div style="font-size:18px;font-weight:700;color:var(--primary);">${{ "%.2f"|format(f.base_price|float) }}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        {% if not f.smoking_allowed %}
+        <span class="badge badge-neutral" style="font-size:10.5px;">🚭 No Smoking</span>
+        {% endif %}
+        {% if f.business_class_indicator %}
+        <span class="badge badge-primary" style="font-size:10.5px;">💼 Business</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:80px;color:var(--text-muted);">
+  <div style="font-size:48px;margin-bottom:16px;">✈</div>
+  <h3 style="font-size:18px;font-weight:600;margin-bottom:8px;">No flights found</h3>
+  <p>Try changing your search filters above.</p>
+</div>
+{% endif %}
+{% endblock %}

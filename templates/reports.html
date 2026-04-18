@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Case Study SQL Reports{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h4 class="fw-bold mb-1">Required Database Queries</h4>
+    <p class="text-muted mb-4">Complete implementation of the 10 scenarios requested.</p>
+
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <div class="accordion" id="queriesAccordion">
+
+        <!-- Query 1 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q1">
+                    Q1. List all customers who live in Canada (Sorted by ID)
+                </button>
+            </h2>
+            <div id="q1" class="accordion-collapse collapse show" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Country</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q1 %}
+                            <tr><td>#{{ row.customer_id }}</td><td>{{ row.first_name }}</td><td>{{ row.last_name }}</td><td>{{ row.country }}</td></tr>
+                            {% else %}<tr><td colspan="4" class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 2 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q2">
+                    Q2. Distinct customers who made bookings
+                </button>
+            </h2>
+            <div id="q2" class="accordion-collapse collapse" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Customer ID</th><th>Name</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q2 %}
+                            <tr><td>#{{ row.customer_id }}</td><td>{{ row.first_name }} {{ row.last_name }}</td></tr>
+                            {% else %}<tr><td colspan="2" class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 3 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q3">
+                    Q3. Currency exchange rate > 1
+                </button>
+            </h2>
+            <div id="q3" class="accordion-collapse collapse" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>From Currency</th><th>To Currency</th><th>Exchange Rate</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q3 %}
+                            <tr><td>{{ row.from_currency }}</td><td>{{ row.to_currency }}</td><td><span class="badge bg-success">{{ row.rate }}</span></td></tr>
+                            {% else %}<tr><td colspan="3" class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 4 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q4">
+                    Q4. Flight availabilities (Toronto YYZ to New York JFK)
+                </button>
+            </h2>
+            <div id="q4" class="accordion-collapse collapse" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Flight No</th><th>Origin</th><th>Destination</th><th>Dep Time</th><th>Arr Time</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q4 %}
+                            <tr><td><strong>{{ row.flight_no }}</strong></td><td>{{ row.origin }}</td><td>{{ row.destination }}</td><td>{{ row.depature_time }}</td><td>{{ row.arrival_time }}</td></tr>
+                            {% else %}<tr><td colspan="5" class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 5 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q5">
+                    Q5. Customers who did not place any booking
+                </button>
+            </h2>
+            <div id="q5" class="accordion-collapse collapse" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Customer ID (No Bookings)</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q5 %}
+                            <tr><td>#{{ row.customer_id }}</td></tr>
+                            {% else %}<tr><td class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 6 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q6">
+                    Q6. Customer Contact info with formatted phone
+                </button>
+            </h2>
+            <div id="q6" class="accordion-collapse collapse" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Phone No</th><th>Email</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q6 %}
+                            <tr><td>{{ row.customer_id }}</td><td>{{ row.first_name }}</td><td>{{ row.last_name }}</td><td>{{ row.phone_no or 'N/A' }}</td><td>{{ row.email or 'N/A' }}</td></tr>
+                            {% else %}<tr><td colspan="5" class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 7 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q7">
+                    Q7. List all canceled bookings with details
+                </button>
+            </h2>
+            <div id="q7" class="accordion-collapse collapse" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Booking No</th><th>Customer ID</th><th>Flight</th><th>Origin</th><th>Dest</th><th>Class</th><th>Status</th><th>Booking City</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q7 %}
+                            <tr><td>{{ row.booking_no }}</td><td>{{ row.customer_id }}</td><td>{{ row.flight_no }}</td><td>{{ row.origin }}</td><td>{{ row.destination }}</td><td>{{ row.class }}</td><td><span class="badge bg-danger">{{ row.status }}</span></td><td>{{ row.booking_city }}</td></tr>
+                            {% else %}<tr><td colspan="8" class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 8 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q8">
+                    Q8. Financials per City (excluding canceled)
+                </button>
+            </h2>
+            <div id="q8" class="accordion-collapse collapse" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>City</th><th>Total Price</th><th>Total Payment</th><th>Total Balance</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q8 %}
+                            <tr><td>{{ row.city_name }}</td><td>${{ row.total_price }}</td><td>${{ row.total_payment }}</td><td>${{ row.total_balance }}</td></tr>
+                            {% else %}<tr><td colspan="4" class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 9 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q9">
+                    Q9. Recalculate price with new airport taxes
+                </button>
+            </h2>
+            <div id="q9" class="accordion-collapse collapse" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Booking No</th><th>Origin</th><th>Dest</th><th>Flight Price</th><th>Previous Total</th><th>New Total</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q9 %}
+                            <tr><td>{{ row.booking_no }}</td><td>{{ row.origin }}</td><td>{{ row.destination }}</td><td>${{ row.flight_price }}</td><td>${{ row.previous_total_price }}</td><td><strong class="text-primary">${{ row.new_total_price }}</strong></td></tr>
+                            {% else %}<tr><td colspan="6" class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Query 10 -->
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-light fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#q10">
+                    Q10. Bookings, Emails, Phones count per Customer
+                </button>
+            </h2>
+            <div id="q10" class="accordion-collapse collapse" data-bs-parent="#queriesAccordion">
+                <div class="accordion-body">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Customer</th><th># Bookings</th><th># Emails</th><th># Phones</th><th># Faxes</th></tr></thead>
+                        <tbody>
+                            {% for row in data.q10 %}
+                            <tr><td>{{ row.first_name }} {{ row.last_name }}</td><td>{{ row.number_of_bookings }}</td><td>{{ row.number_of_emails }}</td><td>{{ row.number_of_phones }}</td><td>{{ row.number_of_faxs }}</td></tr>
+                            {% else %}<tr><td colspan="5" class="text-muted text-center py-3">No data available</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
