@@ -60,13 +60,15 @@ def home():
     try:
         customers_row = query_db("SELECT COUNT(*) AS c FROM Customers", one=True) or {'c': 0}
         bookings_row  = query_db("SELECT COUNT(*) AS c FROM Bookings",  one=True) or {'c': 0}
+        flights_row   = query_db("SELECT COUNT(*) AS c FROM Flights",   one=True) or {'c': 0}
         stats = {
             'customers': customers_row['c'],
             'bookings':  bookings_row['c'],
+            'flights':   flights_row['c']
         }
     except Exception as e:
         print(f"[HOME ROUTE ERROR] {e}")
-        stats = {'customers': 0, 'bookings': 0}
+        stats = {'customers': 0, 'bookings': 0, 'flights': 0}
     return render_template('home.html', stats=stats)
 
 @app.route('/login')
@@ -96,6 +98,9 @@ def dashboard():
 
         cur.execute("SELECT COUNT(*) AS c FROM Bookings")
         bookings_count = cur.fetchone()['c']
+
+        cur.execute("SELECT COUNT(*) AS c FROM Flights")
+        flights_count = cur.fetchone()['c']
 
         cur.execute("SELECT COUNT(*) AS c FROM Bookings WHERE status = 'Canceled'")
         canceled_count = cur.fetchone()['c']
@@ -147,6 +152,7 @@ def dashboard():
             'bookings': bookings_count,
             'customers': customers_count,
             'canceled': canceled_count,
+            'flights': flights_count,
         },
         recent_bookings=recent_bookings,
         city_labels=city_labels,
