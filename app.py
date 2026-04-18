@@ -14,50 +14,59 @@ app = Flask(__name__)
 app.secret_key = 'aerosync_super_secret_2026'
 
 # ── Database Config ───────────────────────────────────────────
-# Reads from environment variables (set in Railway dashboard).
-# Falls back to local dev values if env vars are not set.
-DB_CONFIG = {
-    'host':     os.environ.get('MYSQLHOST',     'localhost'),
-    'port':     int(os.environ.get('MYSQLPORT', 3306)),
-    'user':     os.environ.get('MYSQLUSER',     'root'),
-    'password': os.environ.get('MYSQLPASSWORD', 'JaTIN!2508'),
-    'database': os.environ.get('MYSQLDATABASE', 'airline_reservation'),
-    'autocommit': True,
-}
+# Smarter config: looks for Railway/Heroku/Render variations automatically
+def get_db_config():
+    return {
+        'host':     os.environ.get('MYSQLHOST') or os.environ.get('MYSQL_HOST') or 'localhost',
+        'port':     int(os.environ.get('MYSQLPORT') or os.environ.get('MYSQL_PORT') or 3306),
+        'user':     os.environ.get('MYSQLUSER') or os.environ.get('MYSQL_USER') or 'root',
+        'password': os.environ.get('MYSQLPASSWORD') or os.environ.get('MYSQL_ROOT_PASSWORD') or os.environ.get('MYSQL_PASSWORD') or 'JaTIN!2508',
+        'database': os.environ.get('MYSQLDATABASE') or os.environ.get('MYSQL_DATABASE') or 'airline_reservation',
+        'autocommit': True,
+    }
 
 def get_db():
     """Return a fresh MySQL connection."""
     try:
-        conn = mysql.connector.connect(**DB_CONFIG)
+        config = get_db_config()
+        conn = mysql.connector.connect(**config)
         return conn
     except Error as e:
-        print(f"[DB ERROR] {e}")
+        print(f"[DB CONNECTION ERROR] {e}")
         return None
 
 def query_db(sql, params=(), one=False):
     """Execute a SELECT and return rows as dicts."""
     conn = get_db()
     if not conn:
-        return [] if not one else None
+        return None if one else []
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(sql, params)
         result = cursor.fetchone() if one else cursor.fetchall()
+        cursor.close()
+        conn.close()
         return result
     except Error as e:
         print(f"[QUERY ERROR] {e}")
         return None if one else []
     finally:
-        cursor.close()
-        conn.close()
+        if 'conn' in locals() and conn.is_connected():
+            conn.close()
 
 # ── Auth ─────────────────────────────────────────────────────
 @app.route('/', methods=['GET'])
 def home():
-    stats = {
-        'customers': query_db("SELECT COUNT(*) AS c FROM Customers", one=True)['c'],
-        'bookings':  query_db("SELECT COUNT(*) AS c FROM Bookings",  one=True)['c'],
-    }
+    try:
+        customers_row = query_db("SELECT COUNT(*) AS c FROM Customers", one=True) or {'c': 0}
+        bookings_row  = query_db("SELECT COUNT(*) AS c FROM Bookings",  one=True) or {'c': 0}
+        stats = {
+            'customers': customers_row['c'],
+            'bookings':  bookings_row['c'],
+        }
+    except Exception as e:
+        print(f"[HOME ROUTE ERROR] {e}")
+        stats = {'customers': 0, 'bookings': 0}
     return render_template('home.html', stats=stats)
 
 @app.route('/login')
